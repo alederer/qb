@@ -1,0 +1,140 @@
+interface Card
+{
+	readonly attribute long cardIdx;
+	readonly attribute long score;
+	readonly attribute long rank;
+	readonly attribute DOMString name;
+	readonly attribute DOMString desc;
+	readonly attribute long rankAddMask;
+	readonly attribute long reactTargetMask;
+};
+
+interface CardDb
+{
+	Card GetByNameJS( DOMString name );
+	Card GetByIdxJS( long idx );
+	long GetIdxJS( DOMString name );
+
+	static Card GetByName( DOMString name );
+	static Card GetByIdx( long idx );
+	static long GetIdx( DOMString name );
+};
+
+interface DeckAndHand
+{
+	long GetCard( long idx );
+	readonly attribute long handSize;
+	readonly attribute long deckSize;
+};
+
+interface Space
+{
+	readonly attribute long card;
+	readonly attribute long cardAddPoints;
+	readonly attribute long ix;
+	readonly attribute long faction;
+	readonly attribute long rank;
+	long GetFactionAddPoints( long faction );
+	long GetAddScore();
+	long GetTotalScore();
+};
+
+enum Change
+{
+	"kChange_Rank",
+	"kChange_CardScore",
+	"kChange_AllyScore",
+	"kChange_EnemyScore",
+	"kChange_AnyFactionScore",
+	"kChange_Kill",
+	"kChange_RemoveFromBoard",
+	"kChange_Play",
+	"kChange_PlayFromHand",
+	"kChange_AddCardToHand",
+};
+
+interface ResolveQueue
+{
+	void ResolveQueue();
+};
+
+interface ResolveStep
+{
+};
+
+interface BoardLogEvent
+{
+	void BoardLogEvent();
+	readonly attribute long resolveStepIdx;
+	readonly attribute long change;
+	readonly attribute long ix;
+	readonly attribute long faction;
+	readonly attribute long value;
+};
+
+interface BoardLog
+{
+	void BoardLog();
+	readonly attribute long eventCount;
+	[Ref] BoardLogEvent GetEvent(long i);
+};
+
+interface JSDeck
+{
+	void JSDeck();
+	void PushIdx( long idx, long count );
+	void PushName( DOMString name, long count );
+};
+
+interface Board
+{
+	attribute BoardLog log;
+	attribute boolean silent;
+	attribute long turn;
+	readonly attribute long passCount;
+	void Board();
+	void Init( JSDeck deck0, JSDeck deck1 );
+	void Deal( long faction, long count, boolean randomize );
+	void Mulligan( long faction, long mask );
+	boolean CanPlay( long faction, long handIdx, long ix );
+	void QueueKill( long ix, ResolveQueue queue );
+	void QueuePlay( long faction, long handIdx, long ix, ResolveQueue queue );
+	void Pass( long faction );
+	void Apply( ResolveQueue queue, boolean repeatedly );
+	void ApplyStep( ResolveStep step, ResolveQueue queue );
+	void CloneInto( Board b );
+	long GetRowScore( long faction, long row );
+	long GetWinner();
+	[Ref] DeckAndHand GetDeckAndHand( long faction );
+	[Ref] Space GetSpace( long ix );
+	void DebugPrint();
+	boolean HasMulliganed( long faction );
+
+	//long GetSerializeIntCount();
+	//long Serialize( long[] ints, boolean writeToBoard );
+	//long GetByte( long n );
+	//void SetByte( long n, long b );
+};
+
+interface SerializedBoard
+{
+	readonly attribute DOMString base64;
+	attribute long base64Len;
+	void SerializedBoard();
+	void Set( DOMString str );
+	void ReadFrom( Board board );
+	void WriteTo( Board board );
+};
+
+interface MCTSSearchResult
+{
+	readonly attribute boolean isMulligan;
+	readonly attribute long handIdx;
+	readonly attribute long playIx;
+};
+
+interface MCTS
+{
+	void MCTS();
+	[Value] MCTSSearchResult SearchBestMove( Board board, float time );
+};

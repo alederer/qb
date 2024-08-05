@@ -1,3 +1,10 @@
+node_modules/*
+dist/*
+build/glue.cpp
+build/glue.js
+package-lock.json
+*.dSYM
+
 # Prerequisites
 *.d
 
